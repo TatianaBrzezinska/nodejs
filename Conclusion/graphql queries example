@@ -1,0 +1,66 @@
+query ExampleQuery {
+  users(limit: 3, firstName: "Bryan", lastName: "Smith") {
+    firstName
+    lastName
+    countryCode
+    country {
+      name
+    }
+    company {
+      name
+      country {
+        iso3
+      }
+    }
+  }
+  countries(iso2: "US") {
+    iso3
+  }
+}
+
+
+query ExampleQuery {
+  users(limit: 10, firstName: "Bryan") {
+    firstName
+    countryCode
+    country {
+      name
+      iso2
+      iso3
+    }
+    company {
+      name
+      country {
+        iso3
+        name
+      }
+    }
+  }
+  countries(iso2: "US") {
+    iso3
+    name
+  }
+}
+
+
+query ExampleQuery {
+  users(limit: 5, countryCode: "US") {
+    firstName
+    lastName
+    companyId
+    country {
+      name
+    }
+    company {
+      name
+      country {
+        iso2
+        iso3
+      }
+    }
+  }
+  countries(iso2: "US") {
+    name
+    iso3
+  }
+}

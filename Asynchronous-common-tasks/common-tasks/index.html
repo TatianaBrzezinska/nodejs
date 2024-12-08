@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebSocket Client</title>
+  <style>
+      body {
+          font-family: Arial, sans-serif;
+          background-color: #f9f9f9;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 20px;
+      }
+
+      h1 {
+          color: #333;
+          margin-bottom: 20px;
+      }
+
+      button {
+          padding: 10px 15px;
+          border: none;
+          border-radius: 5px;
+          background-color: #4CAF50;
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+          margin: 10px 5px;
+          transition: background-color 0.3s ease;
+      }
+
+      button:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+      }
+
+      button:hover:not(:disabled) {
+          background-color: #45a049;
+      }
+
+      form {
+          background-color: #fff;
+          border: 1px solid #ddd;
+          border-radius: 8px;
+          padding: 15px;
+          width: 100%;
+          max-width: 400px;
+          margin: 10px 0;
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      label {
+          font-weight: bold;
+          color: #555;
+          display: block;
+          margin-bottom: 8px;
+      }
+
+      input[type="file"] {
+          margin-bottom: 10px;
+      }
+
+      #output {
+          width: 100%;
+          max-width: 600px;
+          background-color: #f1f1f1;
+          padding: 15px;
+          border-radius: 8px;
+          margin-top: 20px;
+          box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      p, ul {
+          margin: 0;
+          padding: 0;
+          color: #333;
+      }
+
+      ul {
+          list-style: none;
+          padding-left: 20px;
+          margin-top: 10px;
+      }
+
+      ul li::before {
+          content: '•';
+          color: #4CAF50;
+          display: inline-block;
+          width: 1em;
+          margin-left: -1em;
+      }
+  </style>
+</head>
+<body>
+<h1>WebSocket Connection Test</h1>
+<button id="connectButton">Connect to WebSocket</button>
+<button id="getFilesButton" disabled>Get Files</button>
+<form id="uploadForm" enctype="multipart/form-data">
+  <label for="fileInput">Upload File (Route: /upload)</label>
+  <input type="file" id="fileInput" name="file">
+  <button type="button" id="uploadButton">Upload</button>
+</form>
+<form id="uploadToFsForm" enctype="multipart/form-data">
+  <label for="fileInputFs">Upload File to File System (Route: /upload-to-fs)</label>
+  <input type="file" id="fileInputFs" name="file">
+  <button type="button" id="uploadToFsButton">Upload to File System</button>
+</form>
+<div id="output"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/7.8.1/rxjs.umd.min.js"></script>
+<script>
+  const { fromEvent, of, from, EMPTY } = rxjs;
+  const { map, switchMap, catchError, tap } = rxjs.operators;
+
+  let socket;
+
+  const connectButton = document.getElementById('connectButton');
+  const getFilesButton = document.getElementById('getFilesButton');
+  const output = document.getElementById('output');
+
+  const openWebSocket = () => {
+    return new WebSocket('ws://localhost:3001');
+  };
+
+  const handleMessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    if (data.error) {
+      output.innerHTML += `<p>Error: ${data.error}</p>`;
+    } else if (Array.isArray(data) && data.length > 0) {
+      output.innerHTML += '<p>Received files:</p><ul>';
+      data.forEach(file => {
+        output.innerHTML += `<li>${file.filename}</li>`;
+      });
+      output.innerHTML += '</ul>';
+    } else if (data.event === "fileSaved" && data.data && data.data.filename) {
+      output.innerHTML += `<p>File saved: ${data.data.filename}</p>`;
+    } else {
+      output.innerHTML += `<p>No files received.</p>`;
+    }
+  };
+
+  const connect$ = fromEvent(connectButton, 'click').pipe(
+    tap(() => {
+      socket = openWebSocket();
+      const open$ = fromEvent(socket, 'open').pipe(
+        tap(() => {
+          output.innerHTML += '<p>WebSocket connection established.</p>';
+          getFilesButton.disabled = false;
+        })
+      );
+
+      const message$ = fromEvent(socket, 'message').pipe(
+        tap(handleMessage)
+      );
+
+      const close$ = fromEvent(socket, 'close').pipe(
+        tap(() => {
+          output.innerHTML += '<p>WebSocket connection closed.</p>';
+          getFilesButton.disabled = true;
+        })
+      );
+
+      const error$ = fromEvent(socket, 'error').pipe(
+        tap(error => {
+          output.innerHTML += `<p>WebSocket error: ${error.message}</p>`;
+        })
+      );
+
+      open$.subscribe();
+      message$.subscribe();
+      close$.subscribe();
+      error$.subscribe();
+    })
+  );
+
+  connect$.subscribe();
+
+  fromEvent(getFilesButton, 'click').pipe(
+    tap(() => {
+      if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send('getFiles');
+      }
+    })
+  ).subscribe();
+
+  function uploadFile(fileInputId, url) {
+    const fileInput = document.getElementById(fileInputId).files[0];
+    if (!fileInput) {
+      alert('Please select a file to upload.');
+      return EMPTY;
+    }
+
+    const reader = new FileReader();
+    const readFile$ = fromEvent(reader, 'load').pipe(
+      map(() => {
+        const data = reader.result;
+        const payload = {
+          filename: fileInput.name,
+          data: data.split(',')[1]
+        };
+        return fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+      }),
+      switchMap(request => from(request).pipe(
+        switchMap(response => response.json()),
+        tap(data => {
+          output.innerHTML += `<p>${data.message}</p>`;
+        }),
+        catchError(error => {
+          output.innerHTML += `<p>Error: ${error.message}</p>`;
+          return EMPTY;
+        })
+      ))
+    );
+
+    reader.readAsDataURL(fileInput);
+    return readFile$;
+  }
+
+  fromEvent(document.getElementById('uploadButton'), 'click')
+    .pipe(switchMap(() => uploadFile('fileInput', 'http://localhost:3000/api/upload')))
+    .subscribe();
+
+  fromEvent(document.getElementById('uploadToFsButton'), 'click')
+    .pipe(switchMap(() => uploadFile('fileInputFs', 'http://localhost:3000/api/upload-to-fs')))
+    .subscribe();
+</script>
+</body>
+</html>

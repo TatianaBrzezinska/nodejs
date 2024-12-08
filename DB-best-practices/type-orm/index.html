@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login & Register</title>
+</head>
+<body>
+<h1>Register</h1>
+
+<form id="registerForm">
+  <label for="username">Username:</label>
+  <input type="text" id="username" name="username" required><br><br>
+
+  <label for="password">Password:</label>
+  <input type="password" id="password" name="password" required><br><br>
+
+  <button type="button" onclick="createUser()">Create User</button>
+</form>
+
+<hr>
+
+<h1>Login</h1>
+
+<form id="loginForm">
+  <label for="loginUsername">Username:</label>
+  <input type="text" id="loginUsername" name="loginUsername" required><br><br>
+
+  <label for="loginPassword">Password:</label>
+  <input type="password" id="loginPassword" name="loginPassword" required><br><br>
+
+  <button type="button" onclick="loginUser()">Login</button>
+</form>
+
+<hr>
+
+<h2>Cars</h2>
+<div id="carsContainer"></div>
+
+<div id="pagination">
+  <button id="prevPage" onclick="changePage(-1)">Previous</button>
+  <span id="pageInfo"></span>
+  <button id="nextPage" onclick="changePage(1)">Next</button>
+</div>
+
+<script>
+  async function createUser() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+
+    try {
+      const response = await fetch('http://localhost:3000/users/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ login: username, password })
+      });
+
+      if (response.ok) {
+        alert('User created successfully');
+      } else {
+        const errorData = await response.json();
+        alert('Error: ' + errorData.message);
+      }
+    } catch (error) {
+      alert('Failed to create user');
+    }
+  }
+
+  async function loginUser() {
+    const loginUsername = document.getElementById('loginUsername').value;
+    const loginPassword = document.getElementById('loginPassword').value;
+
+    try {
+      const response = await fetch('http://localhost:3000/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ login: loginUsername, password: loginPassword })
+      });
+
+      if (response.ok) {
+        alert(response)
+      } else {
+        const errorData = await response.json();
+        alert('Error: ' + errorData.message);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Failed to login');
+    }
+  }
+
+  let currentPage = 1;
+  let totalPages = 1;
+
+  async function fetchCars(page = 1) {
+    try {
+      const response = await fetch(`http://localhost:3000/get-cars?page=${page}`);
+      if (response.ok) {
+        const data = await response.json();
+
+        currentPage = data.page;
+        totalPages = data.totalPages;
+
+        displayCars(data.items);
+        updatePaginationInfo();
+      } else {
+        console.error('Failed to fetch cars');
+        if (response.status === 401 || response.status === 403) {
+          alert('Please login first');
+        }
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  function displayCars(cars) {
+    const container = document.getElementById('carsContainer');
+    container.innerHTML = '';
+
+    if (cars.length === 0) {
+      container.innerHTML = '<p>No cars available.</p>';
+      return;
+    }
+
+    const list = document.createElement('ul');
+    cars.forEach((car) => {
+      const listItem = document.createElement('li');
+      listItem.textContent = `${car.make} ${car.model} (${car.year})`;
+      list.appendChild(listItem);
+    });
+    container.appendChild(list);
+  }
+
+  function updatePaginationInfo() {
+    const pageInfo = document.getElementById('pageInfo');
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+
+    document.getElementById('prevPage').disabled = currentPage <= 1;
+    document.getElementById('nextPage').disabled = currentPage >= totalPages;
+  }
+
+  function changePage(delta) {
+    const newPage = currentPage + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+      fetchCars(newPage);
+    }
+  }
+
+  fetchCars();
+</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  nginx-robot-dreams:
+    image: nginx-robot-dreams:latest
+    container_name: my-static-website
+    cpu_count: 1
+    volumes:
+      - ./www:/usr/share/nginx/html
+    ports:
+      - "8091:80"
+  nginx-robot-dreams-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydb
+    ports:
+      - "5434:5432"
