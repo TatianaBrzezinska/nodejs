@@ -33,6 +33,22 @@ export class AuthService {
 
     const token = await this.tokensService.findTokenByUserId(user.id);
     if(token){
+      this.webSocketService.sendMessage(
+          user.id.toString(),
+          'Message to user!',
+      );
+
+      const tokenExpiryInMs = 1 * 10 * 1000;
+
+      setTimeout(() => {
+        this.webSocketService.sendMessage(
+            user.id.toString(),
+            'Your token expired. Login again',
+        );
+
+        this.tokensService.deleteAccessToken(token.access_token);
+      }, tokenExpiryInMs);
+
       return {
         access_token: token.access_token,
         refresh_token: token.refresh_token,
@@ -44,16 +60,16 @@ export class AuthService {
 
     await this.tokensService.saveTokens(user.id, accessToken, refreshToken);
 
-    const tokenExpiryInMs = 1 * 60 * 1000; // 1 minuta w milisekundach
+    const tokenExpiryInMs = 1 * 10 * 1000;
 
+    console.log('before timeout when login does not exist');
+    console.log('userId', user.id.toString())
     setTimeout(() => {
-      // Wyślij powiadomienie przez WebSocket
       this.webSocketService.sendMessage(
         user.id.toString(),
-        'Twój token wygasł. Zaloguj się ponownie.',
+        'Your token expired. Login again',
       );
 
-      // Opcjonalnie usuń token z bazy danych
       this.tokensService.deleteAccessToken(accessToken);
     }, tokenExpiryInMs);
 

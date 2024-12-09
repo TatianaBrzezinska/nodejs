@@ -25,6 +25,16 @@ export class AppWebSocketGateway implements OnGatewayConnection, OnGatewayDiscon
         this.webSocketService.removeClient(userId);
         console.log(`Client disconnected: ${userId}`);
       });
+
+      this.webSocketService.sendMessage(userId, 'Hello, user!');
+
+      setTimeout(() => {
+        // Wyślij powiadomienie przez WebSocket
+        this.webSocketService.sendMessage(
+            userId,
+            'Your token expired. Login again',
+        );
+      }, 1 * 10 * 1000);
     } else {
       console.log('Connection rejected: userId not provided');
       client.close();

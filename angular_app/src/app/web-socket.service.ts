@@ -13,6 +13,7 @@ export class WebSocketService {
     this.socket = new WebSocket(`ws://localhost:3000?userId=${userId}`);
 
     this.socket.onmessage = (event) => {
+      console.log('WebSocket message received:', event.data);
       this.messages$.next(event.data);
     };
 

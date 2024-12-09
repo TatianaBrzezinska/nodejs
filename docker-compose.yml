@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./nest-app/:/app
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=nest_app
+    command: sh -c "npm install && npm run start:dev"
+    networks:
+        - sail
+
+  angular:
+      build:
+        context: .
+        dockerfile: Dockerfile.angular
+      ports:
+        - "4200:4200"
+      volumes:
+        - ./angular_app:/app
+      command: sh -c "npm install && npm run start-docker"
+      networks:
+        - sail
+      depends_on:
+        - db
+        - app
+
+
+  db:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nest_app
+    ports:
+      - "5412:5432"
+    volumes:
+      - ./nest-app/postgres_data:/var/lib/postgresql/data
+      - ./nest-app/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+        - sail
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+    sail:
+        driver: bridge

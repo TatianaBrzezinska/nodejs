@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, Validators, ReactiveFormsModule, FormGroup } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -21,18 +21,20 @@ import { TweetService } from '../tweet.service';
   ],
 })
 export class HomeComponent implements OnInit {
+  tweetForm!: FormGroup;
+
   constructor(
     private fb: FormBuilder,
     private tweetService: TweetService,
   ) {}
   //@ts-ignore
-  tweetForm = this.fb.group({
-    content: ['', Validators.required],
-  });
 
   tweets: any[] = [];
 
   ngOnInit() {
+    this.tweetForm = this.fb.group({
+      content: ['', Validators.required],
+    });
     this.loadTweets();
   }
 
