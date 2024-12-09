@@ -1,0 +1,20 @@
+[2024-12-08T17:07:37.637Z] [ERROR] Registration error: column "password" of relation "users" does not exist
+[2024-12-08T17:12:44.797Z] [SUCCESS] User registered: tabn1506
+[2024-12-08T17:13:57.988Z] [WARNING] Registration attempt with existing username: tabn1506
+[2024-12-08T17:24:28.613Z] [SUCCESS] User registered: tabn1
+[2024-12-08T17:24:56.668Z] [SUCCESS] User registered: tabn12
+[2024-12-08T17:26:58.980Z] [SUCCESS] User registered: tabn13
+[2024-12-08T17:27:14.192Z] [WARNING] Registration attempt with existing username: tabn1506
+[2024-12-08T17:30:46.874Z] [WARNING] Registration attempt with existing username: tabn1506
+[2024-12-08T17:30:51.696Z] [WARNING] Registration attempt with existing username: tabn1506
+[2024-12-08T17:31:12.681Z] [SUCCESS] User registered: tabn1505
+[2024-12-08T17:31:22.188Z] [SUCCESS] User logged in: tabn1505
+[2024-12-08T22:16:53.362Z] [WARNING] Registration attempt with existing username: tabn1506
+[2024-12-08T22:17:07.491Z] [SUCCESS] User logged in: tabn1505
+[2024-12-08T22:31:05.912Z] [SUCCESS] User registered: tabn14
+[2024-12-08T22:31:13.801Z] [SUCCESS] User logged in: tabn14
+[2024-12-08T22:46:10.016Z] [SUCCESS] User registered: tabn15
+[2024-12-08T22:46:19.583Z] [SUCCESS] User logged in: tabn15
+[2024-12-08T22:51:12.235Z] [SUCCESS] User logged in: tabn15
+[2024-12-08T23:10:25.318Z] [SUCCESS] User registered: tabn16
+[2024-12-08T23:10:33.649Z] [SUCCESS] User logged in: tabn16
