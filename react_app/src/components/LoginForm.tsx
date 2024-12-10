@@ -18,14 +18,15 @@ export const LoginForm = () => {
     <Formik
       initialValues={{ username: "", password: "" }}
       validationSchema={validationSchema}
-      onSubmit={(values) =>
+      onSubmit={(values, { setSubmitting }) =>
         login.mutate(values, {
           onSuccess: () => {
             alert("Login successful");
-            router.push("/tasks");
+            router.push("/");
           },
           onError: (error) => {
             alert(error.message);
+            setSubmitting(false);
           },
         })
       }

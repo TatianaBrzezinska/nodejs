@@ -1,11 +1,12 @@
 import { getTask, createTask, updateTask, deleteTask } from "@/api/requests/task";
 import { TaskInput, TaskResponse } from "@/types/task";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, UseQueryOptions } from "@tanstack/react-query";
 
-export const useGetTask = (id: string) =>
+export const useGetTask = (id: string, options?: Omit<UseQueryOptions<TaskResponse, Error>, "queryKey" | "queryFn">) =>
   useQuery<TaskResponse, Error>({
     queryKey: ["task", id],
     queryFn: () => getTask(id),
+    ...options,
   });
 
 export const useCreateTask = () =>

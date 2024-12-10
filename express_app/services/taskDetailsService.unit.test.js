@@ -1,179 +1,119 @@
-const Task = require("../models/taskDetailsModel");
 const { getTask, createTask, updateTask, deleteTask } = require("./taskDetailsService");
+const Task = require("../models/taskDetailsModel");
 
-jest.mock("../models/taskDetailsModel", () => ({
-  getById: jest.fn(),
-  create: jest.fn(),
-  update: jest.fn(),
-  delete: jest.fn(),
-}));
+jest.mock("../models/taskDetailsModel");
 
 describe("Task Details Service", () => {
-  describe("getTask", () => {
-    it("should return 404 if task is not found", async () => {
-      const mockReq = { params: { id: "task1" }, user: { id: "user1" } };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      Task.getById.mockResolvedValue(null);
-
-      await getTask(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({ error: "Task not found" });
-      expect(Task.getById).toHaveBeenCalledWith({
-        where: { id: "task1", user_id: "user1" },
-      });
-    });
-
-    it("should return the task if found", async () => {
-      const mockReq = { params: { id: "task1" }, user: { id: "user1" } };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      const mockTask = {
-        id: "task1",
-        name: "Test Task",
-        description: "Test Task Description",
-        user_id: "user1",
-      };
-
+  describe("GET /task/:id", () => {
+    it("should return a task for the user", async () => {
+      const mockTask = { id: 1, name: "Test Task" };
       Task.getById.mockResolvedValue(mockTask);
 
-      await getTask(mockReq, mockRes);
+      const req = { params: { id: 1 }, user: { id: 1 } };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      expect(mockRes.json).toHaveBeenCalledWith(mockTask);
-      expect(Task.getById).toHaveBeenCalledWith({
-        where: { id: "task1", user_id: "user1" },
-      });
+      await getTask(req, res);
+
+      expect(res.json).toHaveBeenCalledWith(mockTask);
+      expect(Task.getById).toHaveBeenCalledWith(1, 1);
+    });
+
+    it("should return 404 if task not found", async () => {
+      Task.getById.mockResolvedValue(null);
+
+      const req = { params: { id: 1 }, user: { id: 1 } };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
+
+      await getTask(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Task not found" });
     });
   });
 
-  describe("createTask", () => {
-    it("should create a task successfully", async () => {
-      const mockReq = {
-        body: {
-          name: "New Task",
-          description: "New Task Description",
-          finished_at: "2024-12-31",
-        },
-        user: { id: "user1" },
-      };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
-
-      const mockTask = {
-        id: "task1",
-        name: "New Task",
-        description: "New Task Description",
-        finished_at: "2024-12-31",
-        user_id: "user1",
-      };
-
+  describe("POST /task", () => {
+    it("should create a task", async () => {
+      const mockTask = { id: 1, name: "New Task" };
       Task.create.mockResolvedValue(mockTask);
 
-      await createTask(mockReq, mockRes);
+      const req = { body: { name: "New Task", description: "Test" }, user: { id: 1 } };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      expect(mockRes.status).toHaveBeenCalledWith(201);
-      expect(mockRes.json).toHaveBeenCalledWith(mockTask);
+      await createTask(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(201);
+      expect(res.json).toHaveBeenCalledWith(mockTask);
       expect(Task.create).toHaveBeenCalledWith({
         name: "New Task",
-        description: "New Task Description",
-        finished_at: "2024-12-31",
-        user_id: "user1",
+        description: "Test",
+        finished_at: undefined,
+        user_id: 1,
       });
     });
   });
 
-  describe("updateTask", () => {
-    it("should return 404 if task is not found or not authorized", async () => {
-      const mockReq = {
-        params: { id: "task1" },
-        body: { name: "Updated Task" },
-        user: { id: "user1" },
+  describe("PUT /task/:id", () => {
+    it("should update a task", async () => {
+      const mockTask = { id: 1, name: "Updated Task" };
+      Task.update.mockResolvedValue(mockTask);
+
+      const req = {
+        params: { id: 1 },
+        body: { name: "Updated Task", description: "Updated" },
+        user: { id: 1 },
       };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      Task.update.mockResolvedValue([0]);
+      await updateTask(req, res);
 
-      await updateTask(mockReq, mockRes);
-
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: "Task not found or not authorized",
+      expect(res.json).toHaveBeenCalledWith(mockTask);
+      expect(Task.update).toHaveBeenCalledWith(1, 1, {
+        name: "Updated Task",
+        description: "Updated",
+        finished_at: undefined,
       });
-      expect(Task.update).toHaveBeenCalledWith({ name: "Updated Task" }, { where: { id: "task1", user_id: "user1" } });
     });
 
-    it("should update the task successfully", async () => {
-      const mockReq = {
-        params: { id: "task1" },
+    it("should return 404 if task not found", async () => {
+      Task.update.mockResolvedValue(null);
+
+      const req = {
+        params: { id: 1 },
         body: { name: "Updated Task" },
-        user: { id: "user1" },
+        user: { id: 1 },
       };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      Task.update.mockResolvedValue([1]);
+      await updateTask(req, res);
 
-      await updateTask(mockReq, mockRes);
-
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: "Task updated successfully",
-      });
-      expect(Task.update).toHaveBeenCalledWith({ name: "Updated Task" }, { where: { id: "task1", user_id: "user1" } });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Task not found or not authorized" });
     });
   });
 
-  describe("deleteTask", () => {
-    it("should return 404 if task is not found or not authorized", async () => {
-      const mockReq = { params: { id: "task1" }, user: { id: "user1" } };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
+  describe("DELETE /task/:id", () => {
+    it("should delete a task", async () => {
+      Task.delete.mockResolvedValue(true);
 
-      Task.delete.mockResolvedValue(0);
+      const req = { params: { id: 1 }, user: { id: 1 } };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      await deleteTask(mockReq, mockRes);
+      await deleteTask(req, res);
 
-      expect(mockRes.status).toHaveBeenCalledWith(404);
-      expect(mockRes.json).toHaveBeenCalledWith({
-        error: "Task not found or not authorized",
-      });
-      expect(Task.delete).toHaveBeenCalledWith({
-        where: { id: "task1", user_id: "user1" },
-      });
+      expect(res.json).toHaveBeenCalledWith({ message: "Task deleted successfully" });
+      expect(Task.delete).toHaveBeenCalledWith(1, 1);
     });
 
-    it("should delete the task successfully", async () => {
-      const mockReq = { params: { id: "task1" }, user: { id: "user1" } };
-      const mockRes = {
-        status: jest.fn().mockReturnThis(),
-        json: jest.fn(),
-      };
+    it("should return 404 if task not found", async () => {
+      Task.delete.mockResolvedValue(false);
 
-      Task.delete.mockResolvedValue(1);
+      const req = { params: { id: 1 }, user: { id: 1 } };
+      const res = { json: jest.fn(), status: jest.fn().mockReturnThis() };
 
-      await deleteTask(mockReq, mockRes);
+      await deleteTask(req, res);
 
-      expect(mockRes.json).toHaveBeenCalledWith({
-        message: "Task deleted successfully",
-      });
-      expect(Task.delete).toHaveBeenCalledWith({
-        where: { id: "task1", user_id: "user1" },
-      });
+      expect(res.status).toHaveBeenCalledWith(404);
+      expect(res.json).toHaveBeenCalledWith({ error: "Task not found or not authorized" });
     });
   });
 });

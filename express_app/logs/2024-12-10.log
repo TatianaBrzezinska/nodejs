@@ -1,0 +1,8 @@
+[2024-12-10T00:05:00.890Z] [SUCCESS] User logged in: tabn16
+[2024-12-10T00:05:25.670Z] [SUCCESS] User logged in: tabn17
+[2024-12-10T00:05:38.489Z] [SUCCESS] User logged in: tabn16
+[2024-12-10T00:06:32.693Z] [WARNING] Login attempt with invalid password for username: tabn17
+[2024-12-10T00:06:40.975Z] [WARNING] Login attempt with invalid password for username: tabn17
+[2024-12-10T00:07:34.922Z] [WARNING] Login attempt with invalid password for username: tabn1506
+[2024-12-10T00:07:45.967Z] [WARNING] Login attempt with invalid username: 1
+[2024-12-10T00:07:54.934Z] [SUCCESS] User logged in: tabn17

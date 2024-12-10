@@ -1,47 +1,35 @@
+const request = require("supertest");
+const express = require("express");
+const { getTasks } = require("./tasksService");
 const Tasks = require("../models/tasksModel");
 
-const { getTasks } = require("./tasksService");
+jest.mock("../models/tasksModel");
 
-jest.mock("../models/tasksModel", () => ({
-  getAll: jest.fn(),
-}));
+const app = express();
+app.use(express.json());
+app.get("/tasks", (req, res) => {
+  req.user = { id: 1 };
+  getTasks(req, res);
+});
 
-describe("Task Service - getTasks", () => {
-  it("should return a list of tasks", async () => {
-    const mockReq = {};
-    const mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
+describe("Tasks Service", () => {
+  describe("GET /tasks", () => {
+    it("should return tasks for a user", async () => {
+      const mockTasks = [{ id: 1, name: "Test Task" }];
+      Tasks.getAllByUser.mockResolvedValue(mockTasks);
 
-    const mockTasks = [
-      { id: "task1", name: "Task 1", description: "Description 1" },
-      { id: "task2", name: "Task 2", description: "Description 2" },
-    ];
+      const res = await request(app).get("/tasks");
 
-    Tasks.getAll.mockResolvedValue(mockTasks);
-
-    await getTasks(mockReq, mockRes);
-
-    expect(mockRes.json).toHaveBeenCalledWith(mockTasks);
-    expect(Tasks.getAll).toHaveBeenCalled();
-  });
-
-  it("should handle errors gracefully", async () => {
-    const mockReq = {};
-    const mockRes = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-
-    Tasks.getAll.mockRejectedValue(new Error("Database error"));
-
-    await getTasks(mockReq, mockRes);
-
-    expect(mockRes.status).toHaveBeenCalledWith(500);
-    expect(mockRes.json).toHaveBeenCalledWith({
-      error: "Failed to fetch tasks",
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual(mockTasks);
+      expect(Tasks.getAllByUser).toHaveBeenCalledWith(1);
     });
-    expect(Tasks.getAll).toHaveBeenCalled();
+
+    it("should return 500 if an error occurs", async () => {
+      Tasks.getAllByUser.mockRejectedValue(new Error("Database error"));
+      const res = await request(app).get("/tasks");
+      expect(res.statusCode).toBe(500);
+      expect(res.body).toEqual({ error: "Failed to fetch tasks" });
+    });
   });
 });

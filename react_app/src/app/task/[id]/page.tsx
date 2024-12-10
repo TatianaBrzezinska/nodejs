@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from "@/components/Loading";
 import { TaskForm } from "@/components/TaskForm";
 import { useGetTask, useUpdateTask } from "@/hooks/useTask";
 import { TaskFormValues } from "@/types/task";
@@ -27,11 +28,7 @@ const EditTaskPage = ({ params }: { params: { id: string } }) => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-lg font-semibold text-gray-600 animate-pulse">Loading tasks...</p>
-      </div>
-    );
+    return <Loading>Loading...</Loading>;
   }
 
   return (
