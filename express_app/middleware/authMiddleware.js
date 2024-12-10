@@ -13,7 +13,7 @@ function authMiddleware(req, res, next) {
     }
     req.user = { id: decoded.id, username: decoded.username };
 
-    if (!req.user.id) {
+    if (!req.user.id || !req.user.username) {
       return res.status(403).json({ message: "Missing required parameters" });
     }
 
