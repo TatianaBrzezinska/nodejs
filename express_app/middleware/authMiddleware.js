@@ -12,6 +12,11 @@ function authMiddleware(req, res, next) {
       return res.status(401).json({ message: "Invalid token" });
     }
     req.user = { id: decoded.id, username: decoded.username };
+
+    if (!req.user.id) {
+      return res.status(403).json({ message: "Missing required parameters" });
+    }
+
     next();
   });
 }
