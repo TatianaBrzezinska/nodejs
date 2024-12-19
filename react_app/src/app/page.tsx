@@ -8,8 +8,23 @@ import Loading from "@/components/Loading";
 import { useAuth } from "../context/AuthContext";
 import { TrashIcon } from "@heroicons/react/outline";
 import TaskModal from "@/components/TaskModal";
-import { colors } from "@/utils/colors";
 import { useDeleteTask } from "@/hooks/useTask";
+
+const colors = [
+  "bg-red-700 hover:bg-red-800",
+  "bg-green-700 hover:bg-green-800",
+  "bg-blue-700 hover:bg-blue-800",
+  "bg-yellow-700 hover:bg-yellow-800",
+  "bg-indigo-700 hover:bg-indigo-800",
+  "bg-purple-700 hover:bg-purple-800",
+  "bg-pink-700 hover:bg-pink-800",
+  "bg-emerald-700 hover:bg-emerald-800",
+];
+
+function getColorIndexFromId(id: string, colorsLength: number) {
+  const charSum = Array.from(id).reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return charSum % colorsLength;
+}
 
 export default function HomePage() {
   const { user, isLoading, logout } = useAuth();
@@ -102,24 +117,16 @@ export default function HomePage() {
           </button>
           <h1 className="text-4xl font-bold mb-16">Here are your tasks:</h1>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tasks.map((task, index) => (
-              <div key={task.id} className={`min-w-[260px] relative p-6 rounded shadow-md cursor-pointer ${colors[index % colors.length]} m-2`} onClick={() => handleEditCard(task.id)}>
-                <h3 className="font-bold text-lg">{task.name}</h3>
-                <p>{task.description}</p>
-                <small>
-                  Created:{" "}
-                  {new Date(task.created_at).toLocaleString("en-GB", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </small>
-                {task.finished_at && (
-                  <small className="block">
-                    Finished:{" "}
-                    {new Date(task.finished_at).toLocaleString("en-GB", {
+            {tasks.map((task, index) => {
+              const colorIndex = getColorIndexFromId(task.id, colors.length);
+              const taskColor = colors[colorIndex];
+              return (
+                <div key={task.id} className={`min-w-[260px] relative p-6 rounded shadow-md cursor-pointer ${taskColor} m-2`} onClick={() => handleEditCard(task.id)}>
+                  <h3 className="font-bold text-lg">{task.name}</h3>
+                  <p>{task.description}</p>
+                  <small>
+                    Created:{" "}
+                    {new Date(task.created_at).toLocaleString("en-GB", {
                       day: "2-digit",
                       month: "2-digit",
                       year: "numeric",
@@ -127,12 +134,24 @@ export default function HomePage() {
                       minute: "2-digit",
                     })}
                   </small>
-                )}
-                <button onClick={(e) => handleDeleteClick(e, task.id)} className="absolute bottom-2 right-2 text-white hover:text-gray-200">
-                  <TrashIcon className="h-5 w-5" />
-                </button>
-              </div>
-            ))}
+                  {task.finished_at && (
+                    <small className="block">
+                      Finished:{" "}
+                      {new Date(task.finished_at).toLocaleString("en-GB", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </small>
+                  )}
+                  <button onClick={(e) => handleDeleteClick(e, task.id)} className="absolute bottom-2 right-2 text-white hover:text-gray-200">
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         </>
       ) : (

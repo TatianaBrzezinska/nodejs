@@ -1,10 +1,19 @@
-const { Pool } = require("pg");
+const { Sequelize } = require("sequelize");
 
-const pool = new Pool({
+const sequelize = new Sequelize(process.env.DB_NAME || "express_app", process.env.DB_USER || "postgres", process.env.DB_PASSWORD || "postgres", {
   host: process.env.DB_HOST || "localhost",
-  port: process.env.NODE_ENV === "test" ? 5412 : process.env.DB_PORT || 5412,
-  user: process.env.DB_USER || "postgres",
-  password: process.env.DB_PASSWORD || "postgres",
-  database: process.env.DB_NAME || "express_app",
+  port: process.env.DB_PORT || 5412,
+  dialect: "postgres",
+  logging: false,
 });
-module.exports = pool;
+
+(async () => {
+  try {
+    await sequelize.authenticate();
+    console.log("Connected to PostgreSQL");
+  } catch (error) {
+    console.error("Database connection error:", error);
+  }
+})();
+
+module.exports = sequelize;

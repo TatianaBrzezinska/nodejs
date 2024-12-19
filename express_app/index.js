@@ -4,18 +4,8 @@ const tasksRoutes = require("./routes/tasks");
 const taskDetailsRoutes = require("./routes/task_details");
 const bodyParser = require("body-parser");
 const cors = require("cors");
-const pool = require("./db");
 
 const app = express();
-
-pool
-  .connect()
-  .then(() => {
-    console.log("Connected to PostgreSQL");
-  })
-  .catch((err) => {
-    console.error("Database connection error:", err.stack);
-  });
 
 app.use(bodyParser.json());
 const corsOptions = {

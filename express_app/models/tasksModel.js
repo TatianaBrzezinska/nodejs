@@ -1,6 +1,16 @@
-const pool = require("../db");
+const Task = require("../models/types/Task");
 
 exports.getAllByUser = async (userId) => {
-  const result = await pool.query("SELECT * FROM tasks WHERE user_id = $1 ORDER BY finished_at ASC", [userId]);
-  return result.rows;
+  try {
+    const tasks = await Task.findAll({
+      where: {
+        user_id: userId,
+      },
+      order: [["finished_at", "ASC"]],
+    });
+    return tasks;
+  } catch (error) {
+    console.error("Error fetching tasks for user:", error);
+    throw error;
+  }
 };

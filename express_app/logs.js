@@ -1,14 +1,19 @@
-const pool = require("./db");
+const sequelize = require("./db");
 const { mkdirSync, existsSync, appendFile } = require("node:fs");
 const path = require("node:path");
 const { EOL } = require("node:os");
 
 module.exports = {
   loggerForDatabase: async (eventType, message) => {
-    await pool.query(
-      "INSERT INTO audit (event_type, message) VALUES ($1, $2)",
-      [eventType, message],
-    );
+    try {
+      await sequelize.query("INSERT INTO audit (event_type, message) VALUES (:eventType, :message)", {
+        replacements: { eventType, message },
+        type: QueryTypes.INSERT,
+      });
+      console.log("Audit log saved in the database");
+    } catch (error) {
+      console.error("No connection to the DB:", error);
+    }
   },
   loggerForFileSystem: (eventType, message) => {
     const logDirectory = path.join(__dirname, "logs");
